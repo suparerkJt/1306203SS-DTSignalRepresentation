@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1306203 – Impulse Representation</title>
+<style>
+html,body{margin:0;padding:0;background:transparent;}
+body{padding:8px;}
+</style>
+</head>
+<body>
+
+<div id="app" class="animation-app">
+
+<style>
+#app {
+    width:100%;
+    max-width:1500px;
+    margin:auto;
+    padding:clamp(8px, 2vw, 24px);
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+    position:relative;
+    color:#1f2a44;
+    background:linear-gradient(160deg,#f7f9ff 0%,#eaf0fc 100%);
+    border-radius:18px;
+    box-shadow:0 10px 30px rgba(31,42,68,0.10);
+}
+
+#app * { box-sizing:border-box; }
+
+#app h2 {
+    text-align:center;
+    font-size:clamp(20px, 2.6vw, 30px);
+    margin:12px 0 4px;
+    padding:0 140px;
+    letter-spacing:0.5px;
+    background:linear-gradient(90deg,#2f6fed,#12a36a);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+    color:transparent;
+}
+
+#app .subtitle {
+    text-align:center;
+    font-size:clamp(13px,1.6vw,17px);
+    margin:0 0 16px;
+    opacity:0.8;
+}
+
+#app button.theme {
+    color:white;
+    border:0;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:bold;
+    white-space:nowrap;
+    touch-action:manipulation;
+    box-shadow:0 4px 10px rgba(0,0,0,0.22);
+    transition:transform .12s, filter .12s;
+    background:linear-gradient(135deg,#8b6cff,#5a3fd4);
+    position:absolute;
+    top:clamp(24px,3vw,36px);
+    right:clamp(8px,1.5vw,16px);
+    padding:8px 14px;
+    font-size:clamp(12px,1.3vw,14px);
+    z-index:2;
+}
+#app button.theme:hover { transform:translateY(-1px); filter:brightness(1.08); }
+#app button.theme:active { transform:scale(0.97); }
+
+/* ---------- equation bar (top of the page) ---------- */
+#app .eqbar {
+    margin:0 0 16px;
+    padding:14px 18px;
+    border-radius:14px;
+    background:linear-gradient(180deg,#ffffff,#f0f4fc);
+    border:1px solid #cdd7ec;
+    box-shadow:0 6px 18px rgba(31,42,68,0.12);
+    text-align:center;
+}
+#app .eq {
+    font-size:clamp(16px,2.1vw,24px);
+    font-weight:bold;
+    line-height:1.7;
+    overflow-wrap:anywhere;
+}
+#app .eq .op { opacity:0.75; }
+#app .vals {
+    margin-top:6px;
+    font-size:clamp(12px,1.4vw,15px);
+    opacity:0.85;
+    overflow-wrap:anywhere;
+}
+
+/* ---------- two-column layout ---------- */
+#app .layout {
+    display:grid;
+    grid-template-columns:330px minmax(0,1fr);
+    gap:18px;
+    align-items:start;
+}
+
+#app .panel {
+    background:linear-gradient(180deg,#ffffff,#f0f4fc);
+    border:1px solid #cdd7ec;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(31,42,68,0.12);
+    padding:14px;
+}
+
+#app .left { display:flex; flex-direction:column; gap:14px; }
+
+#app .panel h3 { margin:0 0 10px; font-size:17px; }
+#app .comphead h3 { color:#2f6fed; }
+
+#app button.add {
+    width:100%;
+    padding:10px;
+    border:0;
+    border-radius:10px;
+    cursor:pointer;
+    color:white;
+    font-size:15px;
+    font-weight:bold;
+    background:linear-gradient(135deg,#27b57a,#168553);
+    box-shadow:0 4px 10px rgba(0,0,0,0.22);
+    transition:transform .12s, filter .12s;
+}
+#app button.add:hover { transform:translateY(-1px); filter:brightness(1.08); }
+#app button.add:active { transform:scale(0.98); }
+#app button.add:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+
+#app .rowhead,
+#app .comp {
+    display:grid;
+    grid-template-columns:16px 1fr 1fr 30px;
+    gap:8px;
+    align-items:center;
+}
+#app .rowhead { margin:14px 0 4px; font-size:12px; font-weight:bold; opacity:0.8; }
+#app .comp { margin-top:8px; }
+#app .dot { width:14px; height:14px; border-radius:50%; }
+
+#app .comp button.del {
+    width:30px; height:30px;
+    border:0; border-radius:8px;
+    cursor:pointer;
+    color:white; font-size:16px; font-weight:bold; line-height:1;
+    background:linear-gradient(135deg,#6b7488,#454c5e);
+}
+#app .comp button.del:hover { filter:brightness(1.15); }
+
+#app input[type=number] {
+    display:block;
+    width:100%;
+    padding:7px;
+    font-size:15px;
+    border:1px solid #b9c5e0;
+    border-radius:8px;
+    background:#ffffff;
+    color:#1f2a44;
+    text-align:center;
+}
+#app input[type=number]:focus {
+    outline:none;
+    border-color:#2f6fed;
+    box-shadow:0 0 0 3px rgba(47,111,237,0.25);
+}
+#app input[type=number]:disabled { opacity:0.55; cursor:not-allowed; }
+
+#app .empty { margin-top:12px; font-size:13px; opacity:0.75; }
+
+#app .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+#app .grid2 label { font-size:13px; font-weight:bold; }
+#app .grid2 input { margin-top:5px; }
+
+#app .subhead { margin:14px 0 6px; font-size:14px; font-weight:bold; }
+
+#app .seg { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:10px; }
+#app .seg div {
+    cursor:pointer;
+    text-align:center;
+    padding:7px 4px;
+    border:2px solid #d3dcf0;
+    border-radius:9px;
+    background:#ffffff;
+    font-size:13px;
+    font-weight:bold;
+    user-select:none;
+}
+#app .seg div.active {
+    border-color:#2f6fed;
+    box-shadow:0 0 0 3px rgba(47,111,237,0.22);
+    color:#2f6fed;
+}
+
+#app .hint { margin-top:8px; font-size:12px; opacity:0.75; line-height:1.45; }
+
+/* ---------- right column ---------- */
+#app .right { min-width:0; }
+
+#app canvas {
+    display:block;
+    max-width:100%;
+    background:linear-gradient(180deg,#ffffff,#f0f4fc);
+    border:1px solid #cdd7ec;
+    border-radius:14px;
+    box-shadow:0 6px 18px rgba(31,42,68,0.12);
+}
+
+/* ---------- dark mode ---------- */
+#app.dark {
+    background:linear-gradient(160deg,#0d1117 0%,#161d2e 100%);
+    color:#e6edf7;
+    box-shadow:0 10px 30px rgba(0,0,0,0.45);
+}
+#app.dark h2 {
+    background:linear-gradient(90deg,#6aa9ff,#3ddc97);
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+#app.dark .panel,
+#app.dark .eqbar,
+#app.dark canvas {
+    background:linear-gradient(180deg,#1b2336,#111724);
+    border-color:#2f3b57;
+    box-shadow:0 6px 18px rgba(0,0,0,0.5);
+}
+#app.dark .comphead h3 { color:#58a6ff; }
+#app.dark .seg div { background:#0f1522; border-color:#33415f; }
+#app.dark .seg div.active { border-color:#58a6ff; color:#6aa9ff; box-shadow:0 0 0 3px rgba(88,166,255,0.28); }
+#app.dark input[type=number] {
+    background:#0f1522;
+    color:#e6edf7;
+    border-color:#3b4866;
+}
+#app.dark input[type=number]:focus {
+    border-color:#58a6ff;
+    box-shadow:0 0 0 3px rgba(88,166,255,0.30);
+}
+
+/* ---------- responsive ---------- */
+@media (max-width:900px) {
+    #app .layout { grid-template-columns:1fr; }
+}
+
+@media (max-width:550px) {
+    #app { padding:6px; }
+    #app h2 { margin-top:64px; padding:0; }
+    #app button.theme { padding:7px 11px; }
+}
+</style>
+
+<button class="theme" id="theme">🌙 DARK MODE</button>
+
+<h2>1306203 Signals & Systems: Representation by Delayed Impulses</h2>
+<div class="subtitle">Any discrete-time signal is a linear combination of unit impulses</div>
+
+<div class="eqbar">
+    <div class="eq" id="eq"></div>
+    <div class="vals" id="vals"></div>
+</div>
+
+<div class="layout">
+
+    <!-- LEFT COLUMN -->
+    <div class="left">
+
+        <div class="panel comphead">
+            <h3>Components</h3>
+            <button class="add" id="add">＋ Add component</button>
+
+            <div class="rowhead" id="rowhead">
+                <span></span><span>Delay k</span><span>Amplitude a<sub>k</sub></span><span></span>
+            </div>
+            <div id="list"></div>
+            <div class="empty" id="empty">No components yet. Click “Add component”.</div>
+            
+        </div>
+
+        <div class="panel" id="card_axes">
+            <h3>Plotting area</h3>
+
+            <div class="subhead" style="margin-top:0">Index axis (n)</div>
+            <div class="seg">
+                <div id="n_auto" class="active">Auto scale</div>
+                <div id="n_fixed">Fixed values</div>
+            </div>
+            <div class="grid2">
+                <label>n<sub>min</sub>
+                    <input id="nmin" type="number" value="-5" step="1" disabled>
+                </label>
+                <label>n<sub>max</sub>
+                    <input id="nmax" type="number" value="5" step="1" disabled>
+                </label>
+            </div>
+
+            
+        </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN -->
+    <div class="right" id="right">
+        <canvas id="cv"></canvas>
+    </div>
+
+</div>
+
+<script>
+(function(){
+
+const root=document.getElementById("app");
+const $=s=>root.querySelector(s);
+
+// ======================================
+// STATE
+// ======================================
+
+const MAXC=12;                       // largest number of components
+const comps=[];                      // {id, k, a, c}
+let nextId=1, nextColor=0;
+
+const view={auto_n:true, nmin:-5, nmax:5};
+
+// one colour per component (light / dark theme)
+const PALETTE={
+    light:["#2f6fed","#e5484d","#12a36a","#f08a24","#8b5cf6","#0ea5b7","#d6409f","#8a8f00","#a0522d","#4b5fd6"],
+    dark: ["#58a6ff","#ff6b6b","#3ddc97","#ffb454","#b794ff","#4fd1e0","#ff7ac6","#d6dc3b","#e0a070","#9aa8ff"]
+};
+
+const themes={
+    light:{text:"#1f2a44",tick:"#44506e",axis:"#44506e",zero:"#9aa6bf",grid:"#e0e6f3",
+           accent:"#e5484d",ring:"#ffffff",legendBg:"rgba(255,255,255,0.92)",glow:5},
+    dark:{text:"#e6edf7",tick:"#b4c0d9",axis:"#b4c0d9",zero:"#6e7b96",grid:"#27324a",
+          accent:"#ff6b6b",ring:"#111724",legendBg:"rgba(15,21,34,0.92)",glow:14}
+};
+
+let darkMode=!!(window.matchMedia &&
+    window.matchMedia("(prefers-color-scheme: dark)").matches);
+let C=themes.light;
+
+const colorOf=c=>PALETTE[darkMode?"dark":"light"][c%PALETTE.light.length];
+
+function addComp(k,a){
+    if(comps.length>=MAXC) return;
+    comps.push({id:nextId++,k:k,a:a,c:nextColor++});
+}
+
+// start with a single component:  a_0 · δ[n − 0]
+addComp(0,1);
+
+// ======================================
+// TEXT
+// ======================================
+
+function num(v){
+    const r=Math.round(v*1e4)/1e4;
+    return String(r).replace("-","−");
+}
+
+function delta(k){
+    if(k===0) return "δ[n]";
+    return k>0?"δ[n − "+k+"]":"δ[n + "+(-k)+"]";
+}
+
+function termHTML(cp,first){
+
+    const a=cp.a;
+    const neg=a<0;
+    const mag=Math.abs(a);
+
+    let sign;
+    if(first) sign=neg?"−":"";
+    else      sign=neg?" − ":" + ";
+
+    const coef=(mag===1)?"":num(mag);
+
+    return '<span class="op">'+sign+'</span>'+
+           '<span style="color:'+colorOf(cp.c)+'">'+coef+delta(cp.k)+'</span>';
+}
+
+function equationHTML(){
+
+    if(comps.length===0) return "x[n] = 0";
+
+    let h="x[n] = ";
+    comps.forEach((cp,i)=>{ h+=termHTML(cp,i===0); });
+
+    return h;
+}
+
+// ======================================
+// SIGNAL
+// ======================================
+
+// samples grouped by index: Map n -> [{c, a}]
+function groups(){
+
+    const m=new Map();
+
+    comps.forEach(cp=>{
+        if(!m.has(cp.k)) m.set(cp.k,[]);
+        m.get(cp.k).push(cp);
+    });
+
+    return m;
+}
+
+function totalAt(n){
+
+    let s=0;
+    comps.forEach(cp=>{ if(cp.k===n) s+=cp.a; });
+
+    return s;
+}
+
+function valuesText(){
+
+    const m=groups();
+    const ns=[...m.keys()].sort((p,q)=>p-q);
+
+    if(ns.length===0) return "";
+
+    const parts=ns.map(n=>"x["+n+"] = "+num(totalAt(n)));
+
+    return parts.join(",   ")+",   x[n] = 0 for all other n";
+}
+
+function padRange(lo,hi){
+
+    lo=Math.min(0,lo);
+    hi=Math.max(0,hi);
+
+    let span=hi-lo;
+    if(span<1e-12){ lo=-1; hi=1; span=2; }
+
+    return [lo-0.14*span, hi+0.14*span];
+}
+
+function autoIndexRange(){
+
+    if(comps.length===0) return [-5,5];
+
+    let lo=Math.min(0,...comps.map(cp=>cp.k))-2;
+    let hi=Math.max(0,...comps.map(cp=>cp.k))+2;
+
+    if(hi-lo<10){
+        const extra=10-(hi-lo);
+        lo-=Math.floor(extra/2);
+        hi+=Math.ceil(extra/2);
+    }
+
+    return [lo,hi];
+}
+
+function autoAmpRange(){
+
+    let lo=0, hi=0;
+
+    groups().forEach(list=>{
+        let pos=0, neg=0;
+        list.forEach(cp=>{ if(cp.a>=0) pos+=cp.a; else neg+=cp.a; });
+        if(pos>hi) hi=pos;
+        if(neg<lo) lo=neg;
+    });
+
+    return padRange(lo,hi);
+}
+
+// ======================================
+// LEFT COLUMN: COMPONENT LIST
+// ======================================
+
+const listEl=$("#list");
+const addBtn=$("#add");
+
+function buildList(){
+
+    listEl.innerHTML="";
+
+    comps.forEach(cp=>{
+
+        const row=document.createElement("div");
+        row.className="comp";
+
+        row.innerHTML=
+            '<span class="dot"></span>'+
+            '<input type="number" data-f="k" step="1" min="-100" max="100" value="'+cp.k+'">'+
+            '<input type="number" data-f="a" step="0.1" min="-100" max="100" value="'+cp.a+'">'+
+            '<button class="del" title="Remove this component">×</button>';
+
+        row._cp=cp;
+        listEl.appendChild(row);
+
+        row.querySelectorAll("input").forEach(inp=>{
+            inp.addEventListener("change",()=>{
+
+                const f=inp.dataset.f;
+                let v=Number(inp.value);
+
+                if(!Number.isFinite(v)) v=cp[f];
+                if(f==="k") v=Math.round(v);
+                v=Math.min(100,Math.max(-100,v));
+
+                inp.value=v;
+                cp[f]=v;
+                update();
+            });
+        });
+
+        row.querySelector(".del").addEventListener("click",()=>{
+            comps.splice(comps.indexOf(cp),1);
+            buildList();
+            update();
+        });
+    });
+
+    recolor();
+
+    $("#empty").style.display=comps.length===0?"block":"none";
+    $("#rowhead").style.display=comps.length===0?"none":"grid";
+
+    addBtn.disabled=comps.length>=MAXC;
+    addBtn.textContent=comps.length>=MAXC?"Maximum of "+MAXC+" components":"＋ Add component";
+}
+
+// colour dots follow the theme
+function recolor(){
+    listEl.querySelectorAll(".comp").forEach(row=>{
+        row.querySelector(".dot").style.background=colorOf(row._cp.c);
+    });
+}
+
+addBtn.addEventListener("click",()=>{
+
+    // default: the next free delay, amplitude 1
+    const k=comps.length?Math.max(...comps.map(cp=>cp.k))+1:0;
+
+    addComp(Math.min(100,k),1);
+    buildList();
+    update();
+
+    const inputs=listEl.querySelectorAll('.comp:last-child input');
+    if(inputs.length) inputs[0].focus();
+});
+
+// ======================================
+// PLOT AREA SETTINGS
+// ======================================
+
+const nminIn=$("#nmin"), nmaxIn=$("#nmax");
+
+function setModeN(auto){
+    view.auto_n=auto;
+    $("#n_auto").classList.toggle("active",auto);
+    $("#n_fixed").classList.toggle("active",!auto);
+    nminIn.disabled=auto;
+    nmaxIn.disabled=auto;
+    render();
+}
+
+$("#n_auto").addEventListener("click",()=>setModeN(true));
+$("#n_fixed").addEventListener("click",()=>setModeN(false));
+
+function applyN(){
+
+    let a=Number(nminIn.value), b=Number(nmaxIn.value);
+
+    if(!Number.isFinite(a)||!Number.isFinite(b)){
+        nminIn.value=view.nmin; nmaxIn.value=view.nmax;
+        return;
+    }
+
+    a=Math.round(a); b=Math.round(b);
+
+    if(b<=a||b-a>500){
+        nminIn.value=view.nmin; nmaxIn.value=view.nmax;
+        return;
+    }
+
+    nminIn.value=a; nmaxIn.value=b;
+    view.nmin=a; view.nmax=b;
+    render();
+}
+
+nminIn.addEventListener("change",applyN);
+nmaxIn.addEventListener("change",applyN);
+
+// ======================================
+// THEME
+// ======================================
+
+const themeBtn=$("#theme");
+
+function applyTheme(){
+    C=darkMode?themes.dark:themes.light;
+    root.classList.toggle("dark",darkMode);
+    themeBtn.textContent=darkMode?"☀ LIGHT MODE":"🌙 DARK MODE";
+}
+
+themeBtn.addEventListener("click",()=>{
+    darkMode=!darkMode;
+    applyTheme();
+    recolor();
+    render();
+});
+
+applyTheme();
+
+// ======================================
+// CANVAS
+// ======================================
+
+const cv=$("#cv");
+const box=$("#right");
+const dpr=()=>window.devicePixelRatio||1;
+let hoverX=null;
+
+function fit(){
+
+    const w=Math.max(280,Math.floor(box.clientWidth));
+    const h=Math.round(Math.min(560,Math.max(360,w*0.5)));
+
+    cv._w=w;
+    cv._h=h;
+    cv.style.width=w+"px";
+    cv.style.height=h+"px";
+    cv.width=Math.round(w*dpr());
+    cv.height=Math.round(h*dpr());
+}
+
+function niceTicks(a,b,n){
+
+    const raw=(b-a)/n;
+    const mag=Math.pow(10,Math.floor(Math.log10(raw)));
+    const r=raw/mag;
+    const step=(r<=1?1:r<=2?2:r<=5?5:10)*mag;
+
+    const ticks=[];
+    for(let v=Math.ceil(a/step-1e-9)*step; v<=b+1e-9; v+=step){
+        ticks.push(Math.abs(v)<step*1e-9?0:v);
+    }
+
+    return {ticks,step};
+}
+
+function intTicks(a,b,maxCount){
+
+    const raw=(b-a)/maxCount;
+    const cand=[1,2,5,10,20,50,100,200,500];
+    let step=cand[cand.length-1];
+
+    for(const c of cand){ if(c>=raw){ step=c; break; } }
+
+    const ticks=[];
+    for(let v=Math.ceil(a/step)*step; v<=b; v+=step) ticks.push(v);
+
+    return ticks;
+}
+
+function fmt(v,step){
+
+    if(v===0) return "0";
+
+    if(Math.abs(v)>=1e5 || Math.abs(v)<1e-3)
+        return v.toExponential(1).replace("e+","e");
+
+    const dec=Math.max(0,-Math.floor(Math.log10(step)+1e-9));
+    return v.toFixed(Math.min(dec,6));
+}
+
+function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+}
+
+function render(){
+
+    const W=cv._w, H=cv._h;
+    const ctx=cv.getContext("2d");
+
+    ctx.setTransform(dpr(),0,0,dpr(),0,0);
+    ctx.clearRect(0,0,W,H);
+    ctx.lineJoin="round";
+
+    // ----- text at the top of the page
+    $("#eq").innerHTML=equationHTML();
+    $("#vals").textContent=valuesText();
+
+    // ----- ranges
+    let nmin, nmax, ymin, ymax;
+
+    if(view.auto_n){
+        [nmin,nmax]=autoIndexRange();
+        view.nmin=nmin; view.nmax=nmax;
+        nminIn.value=nmin; nmaxIn.value=nmax;
+    }
+    else{ nmin=view.nmin; nmax=view.nmax; }
+
+    [ymin,ymax]=autoAmpRange();      // always fitted to x[n]
+
+    // ----- geometry
+    const L=68, R=W-24, T=44, B=H-52;
+    const x0=nmin-0.5, x1=nmax+0.5;
+    const unit=(R-L)/(x1-x0);
+    const count=nmax-nmin+1;
+
+    const X=n=>L+(n-x0)/(x1-x0)*(R-L);
+    const Y=v=>B-(v-ymin)/(ymax-ymin)*(B-T);
+
+    const xt=intTicks(nmin,nmax,Math.max(4,Math.floor((R-L)/48)));
+    const yt=niceTicks(ymin,ymax,Math.max(4,Math.floor((B-T)/55)));
+
+    ctx.font="12px Arial";
+    ctx.lineWidth=1;
+
+    xt.forEach(v=>{
+        const x=X(v);
+        ctx.strokeStyle=C.grid;
+        ctx.beginPath(); ctx.moveTo(x,T); ctx.lineTo(x,B); ctx.stroke();
+        ctx.fillStyle=C.tick;
+        ctx.textAlign="center";
+        ctx.fillText(String(v),x,B+18);
+    });
+
+    yt.ticks.forEach(v=>{
+        const y=Y(v);
+        ctx.strokeStyle=C.grid;
+        ctx.beginPath(); ctx.moveTo(L,y); ctx.lineTo(R,y); ctx.stroke();
+        ctx.fillStyle=C.tick;
+        ctx.textAlign="right";
+        ctx.fillText(fmt(v,yt.step),L-8,y+4);
+    });
+
+    // zero lines
+    ctx.strokeStyle=C.zero;
+    ctx.lineWidth=1.8;
+    ctx.beginPath();
+    if(ymin<=0&&ymax>=0){ ctx.moveTo(L,Y(0)); ctx.lineTo(R,Y(0)); }
+    if(nmin<=0&&nmax>=0){ ctx.moveTo(X(0),T); ctx.lineTo(X(0),B); }
+    ctx.stroke();
+
+    // frame
+    ctx.strokeStyle=C.axis;
+    ctx.lineWidth=1.5;
+    ctx.beginPath();
+    ctx.moveTo(L,T); ctx.lineTo(L,B); ctx.lineTo(R,B);
+    ctx.stroke();
+
+    // titles
+    ctx.fillStyle=C.text;
+    ctx.textAlign="left";
+    ctx.font="bold 16px Arial";
+    ctx.fillText("x[n] = Σ aₖ δ[n − k] ",L,28);
+
+    ctx.textAlign="center";
+    ctx.font="14px Arial";
+    ctx.fillText("n  (sample index)",(L+R)/2,H-10);
+
+    ctx.save();
+    ctx.translate(18,(T+B)/2);
+    ctx.rotate(-Math.PI/2);
+    ctx.fillText("x[n]",0,0);
+    ctx.restore();
+
+    // ----- stems, one colour per component (same k: stacked)
+    const r=count>150?2:count>90?2.6:count>50?3.4:count>30?4.2:5;
+    const showLabels=count<=41;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(L,T,R-L,B-T);
+    ctx.clip();
+    ctx.lineCap="round";
+
+    const labels=[];
+
+    groups().forEach((list,n)=>{
+
+        if(n<nmin||n>nmax) return;
+
+        const x=X(n);
+        let pos=0, neg=0;
+
+        list.forEach(cp=>{
+
+            const from=cp.a>=0?pos:neg;
+            const to=from+cp.a;
+
+            if(cp.a>=0) pos=to; else neg=to;
+
+            const col=colorOf(cp.c);
+
+            ctx.save();
+            ctx.shadowColor=col;
+            ctx.shadowBlur=C.glow;
+            ctx.strokeStyle=col;
+            ctx.fillStyle=col;
+            ctx.lineWidth=count>90?2:3.2;
+
+            if(cp.a!==0){
+                ctx.beginPath(); ctx.moveTo(x,Y(from)); ctx.lineTo(x,Y(to)); ctx.stroke();
+            }
+
+            ctx.beginPath(); ctx.arc(x,Y(to),cp.a===0?r*0.55:r,0,2*Math.PI); ctx.fill();
+            ctx.restore();
+
+            labels.push({x:x,y:Y(to),a:cp.a,col:col});
+        });
+
+        // several components at the same k: ring marks the net value x[k]
+        if(list.length>1){
+            ctx.save();
+            ctx.strokeStyle=C.text;
+            ctx.lineWidth=2;
+            ctx.setLineDash([3,3]);
+            ctx.beginPath(); ctx.arc(x,Y(totalAt(n)),r+4,0,2*Math.PI); ctx.stroke();
+            ctx.restore();
+        }
+    });
+
+    ctx.restore();
+
+    // value labels at the tips
+    if(showLabels){
+
+        ctx.font="bold 12px Arial";
+        ctx.textAlign="center";
+
+        labels.forEach(lb=>{
+            ctx.fillStyle=lb.col;
+            const up=lb.a>=0;
+            ctx.fillText(num(lb.a),lb.x,up?lb.y-r-6:lb.y+r+14);
+        });
+    }
+
+    if(comps.length===0){
+        ctx.fillStyle=C.tick;
+        ctx.font="bold 15px Arial";
+        ctx.textAlign="center";
+        ctx.fillText("Add a component to build x[n].",(L+R)/2,(T+B)/2);
+    }
+
+    // ----- hover read-out (nearest sample)
+    if(hoverX!==null && hoverX>=L && hoverX<=R){
+
+        const n=Math.min(nmax,Math.max(nmin,Math.round(nmin+(hoverX-L)/unit-0.5)));
+        const v=totalAt(n);
+        const hx=X(n);
+
+        ctx.save();
+        ctx.strokeStyle=C.accent;
+        ctx.globalAlpha=0.7;
+        ctx.lineWidth=1.5;
+        ctx.setLineDash([5,5]);
+        ctx.beginPath(); ctx.moveTo(hx,T); ctx.lineTo(hx,B); ctx.stroke();
+        ctx.restore();
+
+        const same=comps.filter(cp=>cp.k===n);
+
+        let label="n = "+n+",   x[n] = "+num(v);
+        if(same.length>1) label+="   (= "+same.map(cp=>num(cp.a)).join(" + ")+")";
+
+        ctx.font="bold 13px Arial";
+        const w=ctx.measureText(label).width+20;
+        const bx=Math.max(L,R-w-8), by=T+8;
+
+        roundRect(ctx,bx,by,w,28,8);
+        ctx.fillStyle=C.legendBg;
+        ctx.fill();
+
+        ctx.fillStyle=C.text;
+        ctx.textAlign="left";
+        ctx.fillText(label,bx+10,by+19);
+    }
+}
+
+function update(){ render(); }
+
+cv.addEventListener("mousemove",e=>{
+    const rc=cv.getBoundingClientRect();
+    hoverX=(e.clientX-rc.left)*(cv._w/rc.width);
+    render();
+});
+
+cv.addEventListener("mouseleave",()=>{ hoverX=null; render(); });
+
+cv.addEventListener("touchmove",e=>{
+    const rc=cv.getBoundingClientRect();
+    hoverX=(e.touches[0].clientX-rc.left)*(cv._w/rc.width);
+    render();
+},{passive:true});
+
+cv.addEventListener("touchend",()=>{ hoverX=null; render(); });
+
+// ======================================
+// RESPONSIVE RESIZING
+// ======================================
+
+function resize(){ fit(); render(); }
+
+if(typeof ResizeObserver!=="undefined") new ResizeObserver(resize).observe(box);
+window.addEventListener("resize",resize);
+
+// initial display
+buildList();
+fit();
+render();
+
+})();
+</script>
+
+</div>
+
+<script>
+// tell the parent page how tall this app is, so the iframe fits it exactly
+(function(){
+  var el=document.getElementById("app");
+  function send(){
+    var h=Math.ceil(el.getBoundingClientRect().height)+16;
+    if(window.parent!==window) window.parent.postMessage({appHeight:h,app:location.pathname},"*");
+  }
+  if(typeof ResizeObserver!=="undefined") new ResizeObserver(send).observe(el);
+  window.addEventListener("load",send);
+  window.addEventListener("resize",send);
+  send();
+})();
+</script>
+</body>
+</html>
